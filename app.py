@@ -6,7 +6,8 @@ app = Flask(__name__)
 
 @app.route('/column')
 def column(id=None):
-    return get_column(id)
+    id = request.args.get('id')
+    return get_column(id = int(id))
 
 
 @app.route('/upload_score', methods=['POST'])
@@ -17,4 +18,5 @@ def upload_score():
 
 
 if __name__ == '__main__':
+    print(1)
     app.run()
