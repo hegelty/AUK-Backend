@@ -19,4 +19,4 @@ def upload_score():
 
 if __name__ == '__main__':
     print(1)
-    app.run()
+    app.run(port=8889)
