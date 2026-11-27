@@ -28,7 +28,8 @@ def ensure_daily_schema(db):
             SELECT id, date, score, substr(date, 1, 10) FROM score_legacy
             WHERE typeof(id) = 'text' AND length(trim(id)) > 0
               AND typeof(score) = 'integer' AND score BETWEEN 0 AND 100
-              AND date(substr(date, 1, 10)) IS NOT NULL
+              AND substr(date, 1, 10) GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'
+              AND date(substr(date, 1, 10), '+0 days') = substr(date, 1, 10)
             ORDER BY date, rowid
             ON CONFLICT(id, day) DO UPDATE SET score = excluded.score, date = excluded.date
         """)

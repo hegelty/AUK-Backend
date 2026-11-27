@@ -40,11 +40,13 @@ class ScoreTests(TestCase):
             db.execute("CREATE TABLE score(id text, date text, score integer)")
             db.executemany("INSERT INTO score VALUES (?, ?, ?)", [
                 ("old", "2023-11-30 12:00:00", 15), ("old", "2023-11-30 13:00:00", 25),
-                ("old", "2023-12-01 23:00:00", 55), ("broken", "unknown", 999)])
+                ("old", "2023-12-01 23:00:00", 55), ("broken", "unknown", 999),
+                ("broken", "1", 30), ("broken", "now", 30), ("broken", "2024-02-31 00:00:00", 30)])
         self.assertEqual(self.post("67").status_code, 200)
         self.assertEqual(self.post("67").status_code, 200)
         self.assertEqual(self.rows("SELECT score FROM score WHERE id='old' ORDER BY day"), [(25,), (55,)])
-        self.assertEqual(self.rows("SELECT count(*) FROM score_legacy"), [(4,)])
+        self.assertEqual(self.rows("SELECT count(*) FROM score WHERE id='broken'"), [(0,)])
+        self.assertEqual(self.rows("SELECT count(*) FROM score_legacy"), [(7,)])
 
     def test_concurrent_first_writes(self):
         with ThreadPoolExecutor(max_workers=3) as workers:
