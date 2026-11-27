@@ -1,15 +1,25 @@
-from flask import Flask, request
-from route.column import get_column
-from route.score import store_score
 import sqlite3
+
+from flask import Flask, request
+
+from route.column import ColumnsUnavailable, get_column
+from route.score import store_score
+
 app = Flask(__name__)
 app.config["SCORE_DATABASE"] = "score.db"
 
 
 @app.route('/column')
-def column(id=None):
-    id = request.args.get('id')
-    return get_column(id = int(id))
+def column():
+    index = request.args.get('id', '0')
+    if not index.isascii() or not index.isdecimal() or len(index) > 9:
+        return {'error': 'invalid column index'}, 400
+    try:
+        return get_column(int(index))
+    except IndexError:
+        return {'error': 'column not found'}, 404
+    except ColumnsUnavailable:
+        return {'error': 'columns temporarily unavailable'}, 503
 
 
 @app.route('/upload_score', methods=['POST'])
