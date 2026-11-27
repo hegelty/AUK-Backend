@@ -30,8 +30,18 @@ def fetch_columns(day):
         if anchor is None or any(field is None for field in fields):
             continue
         title, description, author = (field.get_text(" ", strip=True) for field in fields)
-        link = urljoin(COLUMN_URL, anchor["href"].strip())
-        if not (title and description and author) or urlsplit(link).scheme not in ("https", "http"):
+        href = anchor["href"].strip()
+        if not (title and description and author and href) or any(c.isspace() for c in href):
+            continue
+        try:
+            link = urljoin(COLUMN_URL, href)
+            target = urlsplit(link)
+            if not target.hostname or target.scheme not in ("https", "http"):
+                continue
+            # Accessing port also checks that an explicitly supplied port is valid.
+            if target.port == 0:
+                continue
+        except ValueError:
             continue
         articles.append(dict(title=title, description=description, author=author, link=link))
     return articles

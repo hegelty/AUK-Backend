@@ -52,11 +52,14 @@ class ColumnTests(TestCase):
         fetch.side_effect = [[article("a"), article("b")], requests.Timeout()]
         self.assertEqual(self.client.get("/column?id=2").status_code, 404)
         self.clock.now.return_value = datetime(2026, 1, 2)
-        self.assertEqual(self.client.get("/column?id=1").json, article("b"))
+        with self.assertLogs(column.logger.name):
+            self.assertEqual(self.client.get("/column?id=1").json, article("b"))
 
     @patch.object(column.requests, "get")
     def test_extracts_android_fields_and_skips_incomplete_items(self, get):
         html = '<div class="opinion_calendar_content"><ul><li></li><li><a href="/a"><strong>제목</strong></a><p>본문</p><span class="sub_item">필자</span></li></ul></div>'
+        bad_link = '<li><a href="https://[broken"><strong>제목</strong></a><p>본문</p><span class="sub_item">필자</span></li>'
+        html = html.replace("<li></li>", "<li></li>" + bad_link)
         get.return_value = Mock(content=html.encode(), encoding="utf-8")
         self.assertEqual(column.fetch_columns(date(2026, 1, 1)), [
             dict(title="제목", description="본문", author="필자", link="https://news.naver.com/a")])
